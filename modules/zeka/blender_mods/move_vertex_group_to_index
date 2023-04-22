@@ -1,0 +1,58 @@
+bl_info = {
+    "name": "Ouick Move Vertex Group",
+    "author": "batFINGER",
+    "version": (1, 0),
+    "blender": (2, 80, 0),
+    "location": "Properties > Mesh > Vertex Groups",
+    "description": "Quickly move vertex groups",
+    "warning": "",
+    "wiki_url": "",
+    "category": "Object",
+}
+
+import bpy
+from bpy.props import IntProperty
+
+
+def vgmove(delta):
+    direction = 'UP' if delta > 0 else 'DOWN'
+    for i in range(abs(delta)):
+        bpy.ops.object.vertex_group_move(direction=direction)
+
+
+def get_move_to(self):
+    return self.vertex_groups.active_index
+
+
+def set_move_to(self, value):
+    delta = (self.vertex_groups.active_index - 
+            min(value, len(self.vertex_groups) - 1))
+    vgmove(delta)
+
+
+bpy.types.Object.move_to_vg = IntProperty(
+    name="Move to",
+    get=get_move_to,
+    set=set_move_to,
+    min=0,
+)
+
+
+def draw_vg_move(self, context):
+    layout = self.layout
+    ob = context.object
+    if ob and len(ob.vertex_groups):
+        row = layout.row()
+        row.prop(ob, "move_to_vg")
+
+
+def register():
+    bpy.types.DATA_PT_vertex_groups.append(draw_vg_move)
+
+
+def unregister():
+    bpy.types.DATA_PT_vertex_groups.remove(draw_vg_move)
+
+
+if __name__ == "__main__":
+    register()
